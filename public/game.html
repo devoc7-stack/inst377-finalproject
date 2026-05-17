@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game</title>
+    <link rel="stylesheet" href="fp.css">
+    <script src="https://denis-taran.github.io/autocomplete/autocomplete.js"></script>
+</head>
+<style>
+
+</style>
+<body>
+    <h1>Pokemon game!</h1>
+    <div class="nav">
+        <ul>
+            <li><a href="home.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="game.html">Game</a></li>
+            <li><a href="leaderboard.html">Leaderboard</a></li>
+        </ul>
+    </div>
+
+    <form onsubmit="processAnswer(); return false">
+        <input id="userInput" type="text" autocomplete="off">
+    </form>
+    
+    <div class="textbox">
+        <p id="scoreCounter">Score: 0</p>
+    </div>
+</body>
+
+<script>
+    let pokemonList = [];
+    let pokemonNames = [];
+    var pokemonAutofill = [];
+    let alreadyGuessed = [];
+    var score = 0;
+    var username = "";
+
+
+
+
+    var input = document.getElementById("userInput");
+
+    autocomplete({
+    input: input,
+    minLength: 3,
+    fetch: function(text, update) {
+        text = text.toLowerCase();
+        // you can also use AJAX requests instead of preloaded data
+        var suggestions = pokemonAutofill.filter(n => n.label.toLowerCase().startsWith(text))
+        update(suggestions);
+    },
+    onSelect: function(item) {
+        input.value = item.label;
+    }
+    });
+
+    function processAnswer() {
+        answer = document.getElementById("userInput").value;
+        
+        if (alreadyGuessed.includes(answer))
+        {
+            return loseGame();
+        }
+        if (pokemonNames.includes(answer))
+        {   
+            if (score == 1024) {
+            score++;
+            return loseGame();
+        }   else {
+            score++;
+            alreadyGuessed.push(answer);
+            document.getElementById("userInput").value = "";
+            document.getElementById("scoreCounter").innerHTML = "Score: " + score;}
+        }
+        else {
+        return loseGame();}
+    }
+
+    async function loseGame(){
+        await fetch(`/score`, {
+    method: 'POST',
+    body: JSON.stringify({
+      playerScore: `${score}`,
+    }),
+    headers: {
+      'content-type': 'application/json',
+    },
+  }).then((result) => result.json());
+        window.location.href = "leaderboard.html";
+    }
+
+    async function cacheDatabase(){
+        await fetch("/pokemon")
+        .then ((res) => res.json())
+        .then ((pokemon) => {
+            pokemonList = pokemon["results"];
+            pokemonList.forEach(pokemon => {
+                pokemonNames.push(pokemon["name"]);
+            });
+        });
+        console.log(pokemonNames);
+        pokemonNames.forEach(pokemon => {
+                pokemonAutofill.push({label: pokemon, value: pokemon});
+                
+            });
+    }
+    window.onload = cacheDatabase();
+</script>
+</html>

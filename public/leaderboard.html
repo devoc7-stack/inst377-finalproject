@@ -1,0 +1,78 @@
+<html>
+
+<head>
+    <title>About</title>
+    <link rel="stylesheet" href="fp.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ 
+</head>
+
+<body>
+    <h1>Pokemon game!</h1>
+    <div class="nav">
+        <ul>
+            <li><a href="home.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="game.html">Game</a></li>
+            <li><a href="leaderboard.html">Leaderboard</a></li>
+        </ul>
+    </div>
+    <div class ="textbox">
+        <h3>This is the Leaderboard! The top 10 best scores will be displayed here!</h3>
+    </div>
+    <div style="width: 80%; height: 80%;">
+  <canvas id="myChart"></canvas>
+</div>
+
+</body>
+<script>
+    function thisOrThat(len) {
+        if (len>10) {
+            return 10;
+        }
+        else {
+            return len;
+        }
+    }
+    async function makeGraphs() {
+  const ctx = document.getElementById('myChart');
+        let fullData = [];
+        let userScores = [];
+        let blankLabels = [];
+  await fetch("/getScores")
+        .then ((res) => res.json())
+        .then ((scores) => {
+    fullData = scores;
+    for (let index = 0; index < thisOrThat(fullData.length); index++) {
+        userScores.push(fullData[index]["score"]);
+        blankLabels.push("");
+    }
+  })
+  userScores = userScores.sort((a, b) => b - a); 
+  console.log(fullData);
+  console.log(userScores);
+  console.log(blankLabels);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: blankLabels,
+      datasets: [{
+        label: 'Top 10 Scores',
+        data: userScores,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  }); 
+  
+  }
+  window.onload = makeGraphs();
+</script>
+</html>
